@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:proj1/screens/login.dart';
 
 class IndexScreen extends StatelessWidget {
   const IndexScreen({super.key});
@@ -8,12 +9,12 @@ class IndexScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 242, 240, 255),
       body: Center(
-        child: itemCard(),
+        child: itemCard(context),
       ),
     );
   }
 
-  Card itemCard() {
+  Card itemCard(BuildContext context) {
     return Card(
       child: Container(
         width: 1000,
@@ -143,7 +144,9 @@ class IndexScreen extends StatelessWidget {
                         Container(
                           width: double.infinity,
                           child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.pushNamed(context, 'lib/');
+                              },
                               child: Text(
                                 "Sign in",
                                 style: TextStyle(color: Colors.white),
