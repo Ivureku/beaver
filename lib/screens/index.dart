@@ -169,11 +169,19 @@ class IndexScreen extends StatelessWidget {
                               style:
                                   TextStyle(color: Colors.grey, fontSize: 12),
                             ),
-                            Text(" Sign up",
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(context, '/signup');
+                              },
+                              child: Text(
+                                "Sign up",
                                 style: TextStyle(
-                                    color: Color.fromRGBO(83, 61, 248, 1),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600))
+                                  color: Color.fromRGBO(83, 61, 248, 1),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            )
                           ],
                         ),
                         Text("Forgot Password?",

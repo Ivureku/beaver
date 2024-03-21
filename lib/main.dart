@@ -1,7 +1,14 @@
 // Kervi Kent C. Asombrado
 import 'package:flutter/material.dart';
+import 'package:proj1/models/card.dart';
+import 'package:proj1/screens/about.dart';
 import 'package:proj1/screens/index.dart';
+import 'package:proj1/screens/signup.dart';
+import 'package:proj1/widgets/card-widget.dart';
 import 'package:sidebarx/sidebarx.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert' as convert;
 
 void main() {
   runApp(const MyApp());
@@ -13,11 +20,15 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    bool isWideScreen = MediaQuery.of(context).size.width > 600;
+
     return MaterialApp(
       initialRoute: '/', // This sets the main screen as the first screen
 
       routes: {
         'lib/': (context) => HomePage(),
+        '/signup': (context) => SignupScreen(),
+        '/about': (context) => AboutScreen()
       },
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
@@ -32,8 +43,44 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  List<CardModel> myProducts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  Future<void> loadData() async {
+    var response = await http.get(Uri.parse(
+        "https://www.themealdb.com/api/json/v1/1/filter.php?a=Indian"));
+    if (response.statusCode == 200) {
+      var jsonResponse =
+          convert.jsonDecode(response.body) as Map<String, dynamic>;
+      List<CardModel> fromJson = [];
+      for (var i = 0; i < jsonResponse['meals'].length; i++) {
+        CardModel oneProduct = CardModel(
+          id: i.toString(),
+          name: jsonResponse['meals'][i]['strMeal'],
+          picture: jsonResponse['meals'][i]['strMealThumb'],
+        );
+        fromJson.add(oneProduct);
+      }
+      setState(() {
+        myProducts = fromJson;
+      });
+    } else {
+      print('Request failed with status: ${response.statusCode}.');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +98,13 @@ class HomePage extends StatelessWidget {
             items: [
               SidebarXItem(icon: Icons.home, label: 'Home'),
               SidebarXItem(icon: Icons.newspaper_sharp, label: 'News'),
-              SidebarXItem(icon: Icons.question_mark_outlined, label: 'About'),
+              SidebarXItem(
+                icon: Icons.question_mark_outlined,
+                label: 'About',
+                onTap: () {
+                  Navigator.pushNamed(context, '/about');
+                },
+              ),
               SidebarXItem(icon: Icons.person_rounded, label: 'My Account'),
               SidebarXItem(
                 icon: Icons.logout_outlined,
@@ -62,90 +115,17 @@ class HomePage extends StatelessWidget {
               ),
             ]),
       ),
-      body: Container(
-          width: 400,
-          height: 600,
-          margin: EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: itemCard()),
-    );
-  }
-
-  Card itemCard() {
-    return Card(
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 500,
-            height: 250,
-            color: const Color.fromARGB(255, 150, 146, 146),
-            child: Stack(alignment: AlignmentDirectional.topEnd, children: [
-              Icon(
-                Icons.heart_broken_outlined,
-                color: Colors.white,
-              )
-            ]),
-          ),
-          Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Double Cheese Potato Borgir",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  )),
-              Padding(padding: EdgeInsets.only(bottom: 12)),
-              Text("Borgir",
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 47, 78, 234),
-                  )),
-              Padding(padding: EdgeInsets.only(bottom: 29)),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("220-280 Kcal",
-                      style: TextStyle(color: Color.fromARGB(255, 51, 51, 51))),
-                  Container(
-                    alignment: Alignment.center,
-                    height: 27,
-                    width: 39,
-                    padding: EdgeInsets.all(3),
-                    margin: EdgeInsets.only(right: 10),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: Colors.green.shade500,
-                    ),
-                    child: Text(
-                      "Veg",
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                  )
-                ],
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Text(
-                "5.99",
-                style: TextStyle(
-                    color: Colors.amber.shade800,
-                    fontSize: 35,
-                    fontWeight: FontWeight.w600),
-              ),
-              Container()
-            ],
-          )
-        ],
+      body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.start,
+          direction: Axis.horizontal,
+          children: myProducts.map((oneProduct) {
+            return CardWidget(
+                card: oneProduct); // Correctly instantiate CardWidget
+          }).toList(),
+        ),
       ),
     );
   }
